@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Orb Hunter - Shoot the Moving Target</title>
+  <!-- Load p5.js library from CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: radial-gradient(circle at center, #1b1b26 0%, #0d0d14 100%);
+      color: #f0f0f0;
+      overflow-x: hidden;
+      user-select: none;
+    }
+    header {
+      text-align: center;
+      margin-bottom: 12px;
+    }
+    h1 {
+      margin: 0 0 6px 0;
+      font-size: 28px;
+      letter-spacing: 1.5px;
+      color: #00e5ff;
+      text-shadow: 0 0 16px rgba(0, 229, 255, 0.4);
+    }
+    p {
+      margin: 0;
+      color: #a0a5b8;
+      font-size: 14px;
+      letter-spacing: 0.5px;
+    }
+    #canvas-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+      max-width: 1200px;
+    }
+    canvas {
+      display: block;
+      border: 2px solid rgba(0, 229, 255, 0.3);
+      border-radius: 12px;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6), 0 0 20px rgba(0, 229, 255, 0.15);
+      max-width: 100%;
+      height: auto;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>ORB HUNTER</h1>
+    <p>Pull back &amp; fling your ball &bull; Hit the moving target orb &bull; Clear all 5 levels</p>
+  </header>
+  
+  <div id="canvas-container"></div>
+  
+  <!-- Game sketch -->
+  <script src="sketch.js"></script>
+</body>
+</html>
