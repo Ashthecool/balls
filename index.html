@@ -3,55 +3,88 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Orb Hunter - Shoot the Moving Target</title>
-  <!-- Load p5.js library from CDN -->
+  <title>Angry Sebastians</title>
+  <!-- Google Fonts for authentic arcade / cartoon comic look -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;700;900&family=Lilita+One&display=swap" rel="stylesheet">
+  
+  <!-- Matter.js 2D Physics Engine -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
+  <!-- p5.js Library -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
+
   <style>
+    :root {
+      --primary-red: #e52521;
+      --accent-yellow: #feca1d;
+      --wood-brown: #8b4513;
+      --wood-dark: #5c2c16;
+      --bg-dark: #1a1e29;
+      --text-gold: #ffe066;
+    }
+
     * {
       box-sizing: border-box;
-    }
-    body {
       margin: 0;
-      padding: 16px;
+      padding: 0;
+    }
+
+    body {
+      padding: 12px;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       min-height: 100vh;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: radial-gradient(circle at center, #1b1b26 0%, #0d0d14 100%);
-      color: #f0f0f0;
+      font-family: 'Lilita One', 'Fredoka', cursive, sans-serif;
+      background: radial-gradient(circle at center, #2b3345 0%, #11141c 100%);
+      color: #ffffff;
       overflow-x: hidden;
       user-select: none;
     }
+
     header {
       text-align: center;
-      margin-bottom: 12px;
-    }
-    h1.main-title {
-      margin: 0 0 6px 0;
-      font-size: 28px;
-      letter-spacing: 1.5px;
-      color: #00e5ff;
-      text-shadow: 0 0 16px rgba(0, 229, 255, 0.4);
-    }
-    p.main-subtitle {
-      margin: 0;
-      color: #a0a5b8;
-      font-size: 14px;
-      letter-spacing: 0.5px;
+      margin-bottom: 10px;
     }
 
-    /* Game Viewport Container */
+    h1.game-brand {
+      font-size: 38px;
+      letter-spacing: 2px;
+      color: var(--accent-yellow);
+      text-shadow: 
+        -3px -3px 0 #b31b1b,
+        3px -3px 0 #b31b1b,
+        -3px 3px 0 #b31b1b,
+        3px 3px 0 #b31b1b,
+        0 6px 12px rgba(0, 0, 0, 0.7);
+      transform: rotate(-1deg);
+      margin-bottom: 2px;
+    }
+
+    p.game-subtitle {
+      font-family: 'Fredoka', sans-serif;
+      font-weight: 700;
+      font-size: 14px;
+      color: #c9d1d9;
+      letter-spacing: 0.5px;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);
+    }
+
+    /* Game Viewport Frame */
     #game-container {
       position: relative;
       width: 900px;
       height: 560px;
-      border: 2px solid rgba(0, 229, 255, 0.3);
-      border-radius: 12px;
-      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6), 0 0 20px rgba(0, 229, 255, 0.15);
+      border: 5px solid #4a2810;
+      border-radius: 16px;
+      box-shadow: 
+        0 12px 36px rgba(0, 0, 0, 0.8),
+        0 0 0 2px #d49b4b,
+        inset 0 0 10px rgba(0, 0, 0, 0.5);
       overflow: hidden;
-      background: #161822;
+      background: #87ceeb;
     }
 
     #canvas-container {
@@ -62,217 +95,321 @@
       height: 100%;
       z-index: 1;
     }
+
     #canvas-container canvas {
       display: block;
       width: 100%;
       height: 100%;
     }
 
-    /* Shared UI Layer */
-    .ui-layer {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      pointer-events: none;
-      z-index: 2;
-    }
-
-    /* Buttons */
+    /* Comic Style Buttons */
     .btn {
       cursor: pointer;
-      font-family: inherit;
-      font-weight: bold;
-      border-radius: 6px;
-      border: 1.5px solid rgba(255, 255, 255, 0.4);
-      color: #ffffff;
-      transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.08s ease, box-shadow 0.15s ease;
-      outline: none;
-      pointer-events: auto;
-    }
-    .btn:active {
-      transform: scale(0.97);
-    }
-    .btn-primary {
-      background-color: #00bcd4;
-      border-color: #00e5ff;
-      box-shadow: 0 0 10px rgba(0, 188, 212, 0.3);
-    }
-    .btn-primary:hover {
-      background-color: #00d4ec;
-      border-color: #ffffff;
-      box-shadow: 0 0 15px rgba(0, 229, 255, 0.6);
-    }
-    .btn-secondary {
-      background-color: #3b4055;
-      border-color: rgba(255, 255, 255, 0.2);
-    }
-    .btn-secondary:hover {
-      background-color: #4b526d;
-      border-color: #ffffff;
-    }
-    .btn-level {
-      background-color: #34394f;
-      border-color: rgba(255, 255, 255, 0.25);
-      padding: 10px 18px;
-      font-size: 14px;
-    }
-    .btn-level:hover {
-      background-color: #464d6b;
-      border-color: #00e5ff;
-      box-shadow: 0 0 8px rgba(0, 229, 255, 0.4);
-    }
-    .btn-large {
-      padding: 12px 36px;
-      font-size: 18px;
+      font-family: 'Lilita One', cursive, sans-serif;
       letter-spacing: 1px;
+      text-transform: uppercase;
+      border-radius: 10px;
+      border: 3px solid #ffffff;
+      color: #ffffff;
+      outline: none;
+      transition: transform 0.08s ease, filter 0.15s ease, box-shadow 0.15s ease;
+      pointer-events: auto;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
     }
 
-    /* Top HUD Bar */
+    .btn:hover {
+      filter: brightness(1.1);
+      transform: translateY(-2px);
+    }
+
+    .btn:active {
+      transform: translateY(2px) scale(0.97);
+    }
+
+    .btn-red {
+      background: linear-gradient(to bottom, #ff4d4d, #cc1111);
+      border-color: #ffe6e6;
+      box-shadow: 0 4px 0 #800000, 0 6px 12px rgba(0, 0, 0, 0.4);
+    }
+
+    .btn-gold {
+      background: linear-gradient(to bottom, #ffe066, #f39c12);
+      border-color: #fff9db;
+      color: #4a2800;
+      text-shadow: 0 1px 2px rgba(255, 255, 255, 0.5);
+      box-shadow: 0 4px 0 #b36b00, 0 6px 12px rgba(0, 0, 0, 0.4);
+    }
+
+    .btn-blue {
+      background: linear-gradient(to bottom, #4dabf7, #1971c2);
+      border-color: #d0ebff;
+      box-shadow: 0 4px 0 #0c4a80, 0 6px 12px rgba(0, 0, 0, 0.4);
+    }
+
+    .btn-wood {
+      background: linear-gradient(to bottom, #8b5a2b, #5c3a1e);
+      border-color: #d4a373;
+      box-shadow: 0 4px 0 #362212, 0 6px 12px rgba(0, 0, 0, 0.4);
+    }
+
+    .btn-large {
+      padding: 14px 40px;
+      font-size: 24px;
+    }
+
+    .btn-small {
+      padding: 6px 14px;
+      font-size: 14px;
+      border-width: 2px;
+      box-shadow: 0 2px 0 rgba(0, 0, 0, 0.4);
+    }
+
+    /* HUD Bar */
     #hud {
       position: absolute;
       top: 0;
       left: 0;
       width: 100%;
-      height: 50px;
-      background: rgba(30, 33, 46, 0.92);
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      height: 52px;
+      background: linear-gradient(to bottom, rgba(20, 24, 34, 0.94), rgba(20, 24, 34, 0.75));
+      border-bottom: 2px solid rgba(254, 202, 29, 0.4);
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 0 20px;
-      z-index: 2;
+      padding: 0 18px;
+      z-index: 5;
+      backdrop-filter: blur(4px);
     }
+
     .hud-left {
       display: flex;
       align-items: center;
-      gap: 28px;
+      gap: 22px;
     }
-    .hud-level-badge {
-      font-size: 18px;
-      font-weight: bold;
-      color: #00e5ff;
+
+    .hud-badge {
+      font-size: 19px;
+      color: var(--accent-yellow);
       letter-spacing: 1px;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.7);
     }
-    .hud-shots-text {
-      font-size: 15px;
-      color: #dcdde1;
+
+    .hud-score {
+      font-size: 18px;
+      color: #ffffff;
+      letter-spacing: 0.5px;
     }
+
+    .hud-score span {
+      color: #69db7c;
+      font-weight: bold;
+    }
+
+    .hud-high {
+      font-size: 14px;
+      color: #adb5bd;
+      font-family: 'Fredoka', sans-serif;
+    }
+
     .hud-right {
       display: flex;
-      gap: 12px;
-    }
-    .hud-right .btn {
-      padding: 6px 14px;
-      font-size: 13px;
+      align-items: center;
+      gap: 10px;
     }
 
     /* Bottom Prompt */
     #instructions-bar {
       position: absolute;
-      bottom: 8px;
+      bottom: 6px;
       left: 0;
       width: 100%;
       text-align: center;
+      font-family: 'Fredoka', sans-serif;
       font-size: 13px;
-      color: #9ba1b5;
+      font-weight: 700;
+      color: rgba(255, 255, 255, 0.9);
+      text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
       pointer-events: none;
-      z-index: 2;
+      z-index: 5;
     }
 
-    /* Full Overlay Screen (Menu) */
+    .boost-pill {
+      background: #ff4d4d;
+      padding: 2px 8px;
+      border-radius: 6px;
+      color: white;
+      font-weight: 900;
+    }
+
+    /* Overlay Screens (Menu & Modals) */
     .overlay-screen {
       position: absolute;
       inset: 0;
-      background: #161822;
+      background: radial-gradient(circle at center, rgba(30, 41, 59, 0.96) 0%, rgba(15, 23, 42, 0.98) 100%);
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      z-index: 10;
+      z-index: 15;
       transition: opacity 0.2s ease;
     }
-    .menu-title {
-      font-size: 42px;
-      font-weight: 800;
-      margin: 0 0 10px 0;
-      color: #00e5ff;
-      letter-spacing: 2px;
-      text-shadow: 0 0 20px rgba(0, 229, 255, 0.5);
+
+    .menu-logo {
+      font-size: 54px;
+      color: var(--accent-yellow);
+      letter-spacing: 3px;
+      text-shadow: 
+        -4px -4px 0 #b31b1b,
+        4px -4px 0 #b31b1b,
+        -4px 4px 0 #b31b1b,
+        4px 4px 0 #b31b1b,
+        0 8px 20px rgba(0, 0, 0, 0.8);
+      transform: rotate(-2deg);
+      margin-bottom: 6px;
     }
-    .menu-subtitle {
+
+    .menu-tagline {
+      font-family: 'Fredoka', sans-serif;
       font-size: 16px;
-      color: #a0a5b8;
-      margin: 0 0 32px 0;
+      color: #e2e8f0;
+      margin-bottom: 24px;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.6);
     }
-    .menu-picker-title {
-      margin: 36px 0 14px 0;
-      font-size: 14px;
-      font-weight: 600;
-      color: #dcdde1;
-      letter-spacing: 0.5px;
+
+    .level-picker-title {
+      margin: 24px 0 12px 0;
+      font-size: 16px;
+      color: #f1f5f9;
+      letter-spacing: 1px;
     }
+
     .level-picker-grid {
       display: flex;
       gap: 12px;
-      margin-bottom: 36px;
-    }
-    .menu-hint {
-      font-size: 13px;
-      color: #7b8196;
-      margin: 0;
+      margin-bottom: 24px;
     }
 
-    /* Modal Overlays (Level Clear & Game Over) */
+    .btn-level-card {
+      width: 76px;
+      height: 76px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      font-size: 20px;
+    }
+
+    .btn-level-card .stars-mini {
+      font-size: 10px;
+      color: #ffd43b;
+      letter-spacing: 1px;
+    }
+
+    .menu-instructions {
+      max-width: 620px;
+      background: rgba(0, 0, 0, 0.45);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 12px;
+      padding: 10px 18px;
+      text-align: center;
+      font-family: 'Fredoka', sans-serif;
+      font-size: 13px;
+      color: #cbd5e1;
+      line-height: 1.4;
+    }
+
+    /* Modal Overlays */
     .modal-overlay {
       position: absolute;
       inset: 0;
-      background: rgba(0, 0, 0, 0.75);
-      backdrop-filter: blur(4px);
+      background: rgba(10, 15, 25, 0.82);
+      backdrop-filter: blur(5px);
       display: flex;
       align-items: center;
       justify-content: center;
-      z-index: 20;
-      transition: opacity 0.2s ease;
+      z-index: 25;
+      animation: fadeIn 0.2s ease-out;
     }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: scale(0.96); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
     .modal-card {
-      background: #1e2230;
-      border: 2px solid #00e5ff;
-      border-radius: 12px;
-      padding: 32px 40px;
+      background: linear-gradient(to bottom, #2b3345, #1a1e29);
+      border: 4px solid var(--accent-yellow);
+      border-radius: 18px;
+      padding: 30px 44px;
       text-align: center;
-      min-width: 360px;
-      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.8), 0 0 24px rgba(0, 229, 255, 0.25);
+      min-width: 380px;
+      box-shadow: 
+        0 16px 48px rgba(0, 0, 0, 0.85),
+        0 0 24px rgba(254, 202, 29, 0.3);
     }
-    .modal-gold {
-      border-color: #ffd700;
-      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.8), 0 0 24px rgba(255, 215, 0, 0.25);
+
+    .modal-card.modal-danger {
+      border-color: #ff6b6b;
+      box-shadow: 0 16px 48px rgba(0, 0, 0, 0.85), 0 0 24px rgba(255, 107, 107, 0.3);
     }
+
     .modal-card h2 {
-      margin: 0 0 14px 0;
-      font-size: 28px;
-      font-weight: bold;
-      color: #00e5ff;
-      letter-spacing: 1px;
+      font-size: 34px;
+      letter-spacing: 1.5px;
+      color: var(--accent-yellow);
+      text-shadow: 0 3px 6px rgba(0, 0, 0, 0.7);
+      margin-bottom: 8px;
     }
-    .modal-gold h2 {
-      color: #ffd700;
-      text-shadow: 0 0 14px rgba(255, 215, 0, 0.4);
+
+    .modal-danger h2 {
+      color: #ff6b6b;
     }
-    .modal-card p {
-      margin: 0 0 26px 0;
-      font-size: 16px;
-      color: #dcdde1;
+
+    .stars-display {
+      font-size: 42px;
+      color: #ffd43b;
+      letter-spacing: 6px;
+      margin: 8px 0 14px 0;
+      text-shadow: 0 4px 10px rgba(254, 202, 29, 0.6);
     }
+
+    .score-breakdown {
+      background: rgba(0, 0, 0, 0.35);
+      border-radius: 10px;
+      padding: 12px 16px;
+      margin-bottom: 20px;
+      font-family: 'Fredoka', sans-serif;
+      font-size: 15px;
+      color: #e2e8f0;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .score-row {
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .score-total {
+      font-weight: 800;
+      font-size: 18px;
+      color: #69db7c;
+      border-top: 1px solid rgba(255, 255, 255, 0.15);
+      padding-top: 6px;
+      margin-top: 4px;
+    }
+
     .modal-actions {
       display: flex;
       justify-content: center;
-      gap: 16px;
+      gap: 14px;
     }
+
     .modal-actions .btn {
-      padding: 10px 22px;
-      font-size: 14px;
+      padding: 10px 24px;
+      font-size: 16px;
     }
 
     /* Utility */
@@ -283,8 +420,8 @@
 </head>
 <body>
   <header>
-    <h1 class="main-title">ORB HUNTER</h1>
-    <p class="main-subtitle">Pull back &amp; fling your ball &bull; Hit the moving target orb &bull; Clear all 5 levels</p>
+    <h1 class="game-brand">ANGRY SEBASTIANS</h1>
+    <p class="game-subtitle">Pull back &bull; Aim &bull; Release &bull; Click in flight for Sebastian Screech Boost!</p>
   </header>
   
   <div id="game-container">
@@ -294,58 +431,117 @@
     <!-- In-Game Top HUD -->
     <div id="hud" class="hidden">
       <div class="hud-left">
-        <span id="hud-level" class="hud-level-badge">LEVEL 1 / 5</span>
-        <span id="hud-shots" class="hud-shots-text">Shots: 0</span>
+        <span id="hud-level" class="hud-badge">LEVEL 1</span>
+        <div class="hud-score">SCORE: <span id="hud-score">0</span></div>
+        <div class="hud-high">BEST: <span id="hud-high">0</span></div>
       </div>
       <div class="hud-right">
-        <button id="btn-reset" class="btn btn-secondary">RESET (R)</button>
-        <button id="btn-menu" class="btn btn-secondary">MENU</button>
+        <button id="btn-sound" class="btn btn-wood btn-small" title="Toggle Music & Sound">MUSIC &amp; SFX: ON</button>
+        <button id="btn-restart" class="btn btn-red btn-small" title="Restart Level (R)">RETRY (R)</button>
+        <button id="btn-menu" class="btn btn-wood btn-small" title="Level Select">MENU</button>
       </div>
     </div>
 
     <!-- In-Game Bottom Instruction Prompt -->
     <div id="instructions-bar" class="hidden">
-      Click &amp; drag the blue ball backward to shoot &bull; Press 'R' to reset ball
+      Drag Sebastian back to aim &bull; Release to launch &bull; <span class="boost-pill">CLICK IN AIR</span> to Screech Boost!
     </div>
 
     <!-- Main Menu Screen (HTML overlay) -->
     <div id="menu-screen" class="overlay-screen">
-      <h1 class="menu-title">TARGET SHOOTER</h1>
-      <p class="menu-subtitle">Shoot the moving floating target &bull; 5 Levels of increasing speed</p>
-      <button id="btn-play" class="btn btn-primary btn-large">PLAY GAME</button>
+      <h1 class="menu-logo">ANGRY SEBASTIANS</h1>
+      <p class="menu-tagline">Topple the fortresses, crush the targets, and unleash the screaming Sebastians!</p>
       
-      <div class="menu-picker-title">OR CHOOSE LEVEL:</div>
+      <button id="btn-play" class="btn btn-gold btn-large">PLAY GAME</button>
+      
+      <div class="level-picker-title">CHOOSE LEVEL:</div>
       <div class="level-picker-grid">
-        <button class="btn btn-level" data-level="1">LVL 1</button>
-        <button class="btn btn-level" data-level="2">LVL 2</button>
-        <button class="btn btn-level" data-level="3">LVL 3</button>
-        <button class="btn btn-level" data-level="4">LVL 4</button>
-        <button class="btn btn-level" data-level="5">LVL 5</button>
+        <button class="btn btn-wood btn-level-card" data-level="1">
+          <span>1</span>
+          <span class="stars-mini" id="menu-stars-1">★★★</span>
+        </button>
+        <button class="btn btn-wood btn-level-card" data-level="2">
+          <span>2</span>
+          <span class="stars-mini" id="menu-stars-2">★★★</span>
+        </button>
+        <button class="btn btn-wood btn-level-card" data-level="3">
+          <span>3</span>
+          <span class="stars-mini" id="menu-stars-3">★★★</span>
+        </button>
+        <button class="btn btn-wood btn-level-card" data-level="4">
+          <span>4</span>
+          <span class="stars-mini" id="menu-stars-4">★★★</span>
+        </button>
+        <button class="btn btn-wood btn-level-card" data-level="5">
+          <span>5</span>
+          <span class="stars-mini" id="menu-stars-5">★★★</span>
+        </button>
       </div>
 
-      <p class="menu-hint">Controls: Drag from the blue ball like a slingshot and release to fire!</p>
+      <div class="menu-instructions">
+        Pull Sebastian back in the slingshot to launch him into structures. <br>
+        <strong>Pro Tip:</strong> Click or tap anywhere while Sebastian is flying to trigger his <strong>Screech Speed Dash</strong>!
+      </div>
     </div>
 
-    <!-- Level Cleared Modal (HTML overlay) -->
+    <!-- Level Cleared Modal -->
     <div id="level-clear-modal" class="modal-overlay hidden">
       <div class="modal-card">
         <h2>LEVEL CLEARED!</h2>
-        <p id="clear-shots-text">Shots taken: 0</p>
+        <div id="clear-stars" class="stars-display">★★★</div>
+        <div class="score-breakdown">
+          <div class="score-row">
+            <span>Destruction Score:</span>
+            <span id="clear-dest-score">0</span>
+          </div>
+          <div class="score-row">
+            <span>Sebastian Bonus:</span>
+            <span id="clear-bonus-score">0</span>
+          </div>
+          <div class="score-row score-total">
+            <span>Total Score:</span>
+            <span id="clear-total-score">0</span>
+          </div>
+        </div>
         <div class="modal-actions">
-          <button id="btn-next-level" class="btn btn-primary">NEXT LEVEL</button>
-          <button id="btn-clear-menu" class="btn btn-secondary">MAIN MENU</button>
+          <button id="btn-clear-retry" class="btn btn-wood">REPLAY</button>
+          <button id="btn-next-level" class="btn btn-gold">NEXT LEVEL</button>
+          <button id="btn-clear-menu" class="btn btn-wood">MENU</button>
         </div>
       </div>
     </div>
 
-    <!-- Game Over Modal (HTML overlay) -->
-    <div id="game-over-modal" class="modal-overlay hidden">
-      <div class="modal-card modal-gold">
-        <h2>YOU WON!</h2>
-        <p>All 5 moving targets eliminated!</p>
+    <!-- Level Failed Modal -->
+    <div id="level-fail-modal" class="modal-overlay hidden">
+      <div class="modal-card modal-danger">
+        <h2>LEVEL FAILED!</h2>
+        <p style="font-family: 'Fredoka', sans-serif; color: #cbd5e1; margin: 12px 0 20px 0;">
+          All Sebastians spent! Targets remain standing.
+        </p>
         <div class="modal-actions">
-          <button id="btn-play-again" class="btn btn-primary">PLAY AGAIN</button>
-          <button id="btn-over-menu" class="btn btn-secondary">MAIN MENU</button>
+          <button id="btn-fail-retry" class="btn btn-red">TRY AGAIN</button>
+          <button id="btn-fail-menu" class="btn btn-wood">MENU</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Game Won / Victory Modal -->
+    <div id="game-over-modal" class="modal-overlay hidden">
+      <div class="modal-card">
+        <h2>VICTORY!</h2>
+        <p style="font-family: 'Fredoka', sans-serif; color: #ffd43b; font-size: 18px; margin-bottom: 12px;">
+          All 5 fortresses demolished! Sebastian rules supreme!
+        </p>
+        <div id="victory-stars" class="stars-display">★★★★★</div>
+        <div class="score-breakdown">
+          <div class="score-row score-total">
+            <span>Grand Total Score:</span>
+            <span id="victory-total-score">0</span>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button id="btn-play-again" class="btn btn-gold">PLAY AGAIN</button>
+          <button id="btn-victory-menu" class="btn btn-wood">MAIN MENU</button>
         </div>
       </div>
     </div>

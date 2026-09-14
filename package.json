@@ -1,0 +1,12 @@
+{
+  "name": "angry-sebastians",
+  "version": "1.0.0",
+  "description": "Angry Sebastians - Physics destruction game inspired by Angry Birds",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "keywords": ["game", "angry-birds", "p5js", "matterjs"],
+  "author": "",
+  "license": "MIT"
+}
